@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Navbar from '../../components/Navbar'
 import { COMPANY } from '../../lib/constants'
 
@@ -71,12 +72,19 @@ export default function AdminPage() {
 
         <div className="mb-8">
           <p className="text-xs text-[#5a6278] mb-1">{COMPANY.name} — Admin Panel</p>
-		  <Link href="/admin/students"
-			className="inline-flex items-center gap-2 bg-[#161b27] border border-[#2a2f3e] rounded-lg px-4 py-2 text-xs text-[#c8d0e0] hover:border-[#534AB7]/50 transition-colors mb-6">
-			← View all students
-		  </Link>
-          <h1 className="text-xl font-medium text-[#e2e8f0]">Manage video lessons</h1>
-          <p className="text-xs text-[#8892a4] mt-1">Upload to Cloudflare Stream first, then paste the Video ID here</p>
+          <h1 className="text-xl font-medium text-[#e2e8f0]">Admin Panel</h1>
+          <p className="text-xs text-[#8892a4] mt-1">Manage lessons and students</p>
+
+          {/* Admin nav buttons */}
+          <div className="flex gap-3 mt-4">
+            <Link href="/admin/students"
+              className="flex items-center gap-2 bg-[#534AB7] text-[#EEEDFE] text-xs font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+              Students
+            </Link>
+            <span className="flex items-center gap-2 bg-[#161b27] border border-[#534AB7] text-[#7f77dd] text-xs font-medium px-4 py-2 rounded-lg">
+              Video Lessons
+            </span>
+          </div>
         </div>
 
         {/* Cloudflare guide */}
