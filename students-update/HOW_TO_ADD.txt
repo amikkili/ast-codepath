@@ -1,0 +1,32 @@
+# How to add Students Management to your existing project
+# ─────────────────────────────────────────────────────────────────────────────
+# Copy these 3 files into your ast-codepath project:
+
+FILE 1 → app/api/admin/students/route.js
+  (create folder: app/api/admin/students/)
+
+FILE 2 → app/api/admin/students/[id]/route.js
+  (create folder: app/api/admin/students/[id]/)
+
+FILE 3 → app/admin/students/page.js
+  (create folder: app/admin/students/)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Then add this link to your existing app/admin/page.js
+# Find the line that says: "Manage video lessons"
+# Add this ABOVE it:
+
+  <Link href="/admin/students"
+    className="inline-flex items-center gap-2 bg-[#161b27] border border-[#2a2f3e] rounded-lg px-4 py-2 text-xs text-[#c8d0e0] hover:border-[#534AB7]/50 transition-colors mb-6">
+    ← View all students
+  </Link>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# After copying, run locally:
+#   npm run dev
+#   Open http://localhost:3000/admin/students
+
+# Then push to GitHub and Render will auto-redeploy:
+#   git add .
+#   git commit -m "Add student management page"
+#   git push
