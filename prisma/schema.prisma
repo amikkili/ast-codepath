@@ -1,3 +1,8 @@
+// prisma/schema.prisma  ← REPLACE your entire schema.prisma with this
+// FIX: Added stripeCustomerId String? to User model
+// After replacing this file, run: npx prisma migrate dev --name add_stripe_customer_id
+// Then push to GitHub — Render will apply the migration automatically on redeploy
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,15 +24,16 @@ enum Role {
 }
 
 model User {
-  id        String     @id @default(cuid())
-  name      String
-  email     String     @unique
-  password  String
-  plan      Plan       @default(FREE)
-  role      Role       @default(STUDENT)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  progress  Progress[]
+  id               String     @id @default(cuid())
+  name             String
+  email            String     @unique
+  password         String
+  plan             Plan       @default(FREE)
+  role             Role       @default(STUDENT)
+  stripeCustomerId String?                        // ← ADDED — was missing
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  progress         Progress[]
 }
 
 model Course {
@@ -44,18 +50,18 @@ model Course {
 }
 
 model Lesson {
-  id          String     @id @default(cuid())
-  courseId    String
-  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessonNo    Int
-  title       String
-  duration    String     @default("10 min")
-  videoId     String
-  accessPlan  Plan       @default(BASIC)
-  published   Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  progress    Progress[]
+  id         String     @id @default(cuid())
+  courseId   String
+  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonNo   Int
+  title      String
+  duration   String     @default("10 min")
+  videoId    String
+  accessPlan Plan       @default(BASIC)
+  published  Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  progress   Progress[]
 
   @@unique([courseId, lessonNo])
 }
