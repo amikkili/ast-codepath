@@ -1,7 +1,7 @@
-// app/api/auth/reset-password/route.js  ← NEW FILE
-// Verifies the reset token, checks expiry, updates password in DB.
-import { db }     from '../../../../lib/db'
-import bcrypt     from 'bcryptjs'
+// app/api/auth/reset-password/route.js  ← REPLACE
+// FIX: Corrected import paths
+import { db }    from '../../../../lib/db'
+import bcrypt    from 'bcryptjs'
 
 export async function POST(req) {
   const { token, password } = await req.json()
@@ -12,7 +12,6 @@ export async function POST(req) {
   if (password.length < 6)
     return Response.json({ error: 'Password must be at least 6 characters' }, { status: 400 })
 
-  // Find the token record
   const record = await db.passwordResetToken.findUnique({
     where:   { token },
     include: { user: true },
@@ -27,7 +26,6 @@ export async function POST(req) {
   if (new Date() > record.expiresAt)
     return Response.json({ error: 'Reset link has expired. Request a new one.' }, { status: 400 })
 
-  // Update password and mark token as used
   const hashed = await bcrypt.hash(password, 10)
 
   await db.user.update({

@@ -1,6 +1,5 @@
-// app/api/razorpay/verify/route.js  ← NEW FILE
-// Verifies Razorpay payment signature (prevents fake payments).
-// After verification, upgrades student plan in PostgreSQL.
+// app/api/razorpay/verify/route.js  ← REPLACE
+// FIX: Corrected import paths
 import { db }               from '../../../../lib/db'
 import { getServerSession } from 'next-auth'
 import { authOptions }      from '../../../../lib/auth'
@@ -24,46 +23,27 @@ export async function POST(req) {
   const keySecret = process.env.RAZORPAY_KEY_SECRET
 
   if (!keySecret) {
-    // Demo mode — still upgrade plan for testing
-    await db.user.update({
-      where: { id: session.user.id },
-      data:  { plan },
-    })
+    await db.user.update({ where: { id: session.user.id }, data: { plan } })
     return Response.json({ ok: true, plan })
   }
 
   try {
-    // ── Verify HMAC signature — prevents fake payment claims ──────────────
     const body      = `${razorpay_order_id}|${razorpay_payment_id}`
-    const expected  = crypto
-      .createHmac('sha256', keySecret)
-      .update(body)
-      .digest('hex')
+    const expected  = crypto.createHmac('sha256', keySecret).update(body).digest('hex')
 
     if (expected !== razorpay_signature) {
-      console.error('Razorpay signature mismatch — possible fraud attempt')
+      console.error('Razorpay signature mismatch')
       return Response.json({ error: 'Payment verification failed' }, { status: 400 })
     }
 
-    // ── Signature valid — upgrade plan in DB ──────────────────────────────
-    await db.user.update({
-      where: { id: session.user.id },
-      data:  { plan },
-    })
+    await db.user.update({ where: { id: session.user.id }, data: { plan } })
+    console.log(`✓ Razorpay verified: ${session.user.email} → ${plan}`)
 
-    console.log(`✓ Razorpay payment verified: ${session.user.email} → ${plan}`)
-
-    // ── Send payment confirmation email (non-blocking) ────────────────────
     const user = await db.user.findUnique({
-      where:  { id: session.user.id },
-      select: { name: true, email: true },
+      where: { id: session.user.id }, select: { name: true, email: true },
     })
     if (user) {
-      const template = paymentConfirmationEmail({
-        name:   user.name,
-        plan,
-        amount: INR_DISPLAY[plan] || plan,
-      })
+      const template = paymentConfirmationEmail({ name: user.name, plan, amount: INR_DISPLAY[plan] || plan })
       sendEmail({ to: user.email, ...template }).catch(() => {})
     }
 

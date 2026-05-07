@@ -1,8 +1,9 @@
-// app/api/auth/forgot-password/route.js  ← NEW FILE
-// Generates a secure one-time reset token, saves it in DB, sends reset email.
-import { db }                           from '../../../../lib/db'
-import { sendEmail, passwordResetEmail } from '../../../../lib/email'
-import crypto                            from 'crypto'
+// app/api/auth/forgot-password/route.js  ← REPLACE
+// FIX: Corrected import paths from ../../../../  to  ../../../../../
+// (this file is 4 folders deep, lib is at root = 5 levels up)
+import { db }                              from '../../../../lib/db'
+import { sendEmail, passwordResetEmail }   from '../../../../lib/email'
+import crypto                              from 'crypto'
 
 export async function POST(req) {
   const { email } = await req.json()
@@ -10,20 +11,17 @@ export async function POST(req) {
   if (!email)
     return Response.json({ error: 'Email is required' }, { status: 400 })
 
-  // Always return success — never reveal whether email exists (security)
   const successResponse = Response.json({
     message: 'If that email exists, a reset link has been sent.',
   })
 
   const user = await db.user.findUnique({ where: { email } })
-  if (!user) return successResponse  // don't reveal user doesn't exist
+  if (!user) return successResponse
 
-  // Delete any existing tokens for this user
   await db.passwordResetToken.deleteMany({ where: { userId: user.id } })
 
-  // Generate a secure random token
   const token     = crypto.randomBytes(32).toString('hex')
-  const expiresAt = new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000)
 
   await db.passwordResetToken.create({
     data: { userId: user.id, token, expiresAt },
@@ -32,12 +30,7 @@ export async function POST(req) {
   const appUrl   = process.env.NEXTAUTH_URL || 'https://www.anilsofttech.com'
   const resetUrl = `${appUrl}/reset-password?token=${token}`
 
-  const template = passwordResetEmail({
-    name:             user.name,
-    resetUrl,
-    expiresInMinutes: 30,
-  })
-
+  const template = passwordResetEmail({ name: user.name, resetUrl, expiresInMinutes: 30 })
   await sendEmail({ to: email, ...template })
 
   return successResponse

@@ -1,8 +1,8 @@
-// app/api/auth/register/route.js  ← REPLACE existing file
-// ADDED: Sends branded welcome email via Resend after successful signup
-import { db }             from '../../../lib/db'
-import { sendEmail, welcomeEmail } from '../../../lib/email'
-import bcrypt             from 'bcryptjs'
+// app/api/auth/register/route.js  ← REPLACE
+// FIX: Corrected import paths from ../../../  to  ../../../../
+import { db }                            from '../../../../lib/db'
+import { sendEmail, welcomeEmail }       from '../../../../lib/email'
+import bcrypt                            from 'bcryptjs'
 
 export async function POST(req) {
   try {
@@ -20,9 +20,9 @@ export async function POST(req) {
       data: { name, email, password: hashed, plan: 'FREE', role: 'STUDENT' },
     })
 
-    // ── Send welcome email (non-blocking — don't fail signup if email fails) ─
+    // Send welcome email (non-blocking)
     const template = welcomeEmail({ name })
-    sendEmail({ to: email, ...template }).catch((err) => {
+    sendEmail({ to: email, ...template }).catch(err => {
       console.error('Welcome email failed (non-critical):', err)
     })
 
