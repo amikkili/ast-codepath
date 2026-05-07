@@ -1,6 +1,6 @@
 'use client'
 // components/Navbar.js  ← REPLACE existing file
-// ADDED: Contact and About links in navigation
+// FIX: Request Demo now links to /contact?type=demo which auto-scrolls to demo form
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { COMPANY } from '../lib/constants'
@@ -56,8 +56,9 @@ export default function Navbar() {
               className="text-xs text-[#c8d0e0] border border-[#2a2f3e] rounded-md px-3 py-1.5 hover:bg-[#2a2f3e]/30 transition-colors">
               Sign in
             </Link>
+            {/* ── FIX: Request Demo → /contact?type=demo auto-scrolls to form ── */}
             <Link href="/contact?type=demo"
-              className="text-xs border border-[#2a2f3e] text-[#c8d0e0] rounded-md px-3 py-1.5 hover:bg-[#2a2f3e]/30 transition-colors hidden md:block">
+              className="text-xs border border-[#534AB7]/50 text-[#7f77dd] rounded-md px-3 py-1.5 hover:bg-[#534AB7]/10 transition-colors hidden md:block">
               Request Demo
             </Link>
             <Link href="/login?tab=signup"
