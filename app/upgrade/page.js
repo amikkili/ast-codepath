@@ -1,13 +1,14 @@
 'use client'
 // app/upgrade/page.js  ← REPLACE existing file
-// FIX 1: After payment redirect, calls /api/stripe/confirm to update plan in DB
-// FIX 2: Then calls /api/user/plan to read real plan from DB (not cached session)
-// FIX 3: Forces NextAuth session refresh so navbar + dashboard update immediately
-import { useEffect, useState, useCallback } from 'react'
-import { useSession }                        from 'next-auth/react'
-import { useSearchParams, useRouter }        from 'next/navigation'
-import Link                                  from 'next/link'
-import { COMPANY }                           from '../../lib/constants'
+// FIX: Stops blinking by:
+// 1. useRef to ensure confirmation only runs ONCE
+// 2. router.replace() to clean URL params after processing
+// 3. Removed update() from confirm flow (it was causing re-renders → blinking)
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { useSession }                               from 'next-auth/react'
+import { useSearchParams, useRouter }               from 'next/navigation'
+import Link                                         from 'next/link'
+import { COMPANY }                                  from '../../lib/constants'
 
 const PLANS = [
   {
@@ -52,17 +53,18 @@ const PLANS = [
 ]
 
 export default function UpgradePage() {
-  const { data: session, status, update } = useSession()
+  const { data: session, status } = useSession()
   const searchParams = useSearchParams()
   const router       = useRouter()
 
-  const [loadingPlan, setLoadingPlan]   = useState(null)
-  const [confirming, setConfirming]     = useState(false)
-  const [message, setMessage]           = useState(null)
-  // realPlan is fetched directly from DB — overrides cached session plan
-  const [realPlan, setRealPlan]         = useState(null)
+  const [loadingPlan, setLoadingPlan] = useState(null)
+  const [confirming, setConfirming]   = useState(false)
+  const [message, setMessage]         = useState(null)
+  const [realPlan, setRealPlan]       = useState(null)
 
-  // Fetch real plan from DB
+  // ── FIX: useRef prevents confirmation from running more than once ─────────
+  const hasConfirmed = useRef(false)
+
   const fetchRealPlan = useCallback(async () => {
     try {
       const res  = await fetch('/api/user/plan')
@@ -75,7 +77,7 @@ export default function UpgradePage() {
     if (status === 'authenticated') fetchRealPlan()
   }, [status, fetchRealPlan])
 
-  // ── Handle Stripe redirect back after payment ────────────────────────────
+  // ── Handle Stripe redirect ────────────────────────────────────────────────
   useEffect(() => {
     const success         = searchParams.get('success')
     const cancelled       = searchParams.get('cancelled')
@@ -84,13 +86,16 @@ export default function UpgradePage() {
 
     if (cancelled === 'true') {
       setMessage({ type: 'cancelled' })
+      // ── Clean URL so it doesn't show on refresh ──────────────────────
+      router.replace('/upgrade')
       return
     }
 
-    if (success === 'true' && plan && stripeSessionId) {
+    // ── FIX: Only run confirmation once using the ref ─────────────────────
+    if (success === 'true' && plan && stripeSessionId && !hasConfirmed.current) {
+      hasConfirmed.current = true   // lock so it never runs again
       setConfirming(true)
 
-      // ── Call confirm API to upgrade plan in DB ─────────────────────────
       fetch('/api/stripe/confirm', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,25 +104,28 @@ export default function UpgradePage() {
         .then((r) => r.json())
         .then(async (data) => {
           if (data.ok) {
-            // Update session so navbar shows new plan
-            await update()
-            // Also fetch fresh plan from DB
-            await fetchRealPlan()
             setRealPlan(plan)
             setMessage({ type: 'success', plan })
+            // ── FIX: Clean URL params so page stops blinking on re-render ─
+            router.replace('/upgrade')
           } else {
             setMessage({ type: 'error', text: data.error || 'Could not confirm payment' })
+            router.replace('/upgrade')
           }
         })
-        .catch(() => setMessage({ type: 'error', text: 'Network error confirming payment' }))
+        .catch(() => {
+          setMessage({ type: 'error', text: 'Network error — please try again' })
+          router.replace('/upgrade')
+        })
         .finally(() => setConfirming(false))
     }
-  }, [searchParams, update, fetchRealPlan])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])  // ── FIX: Empty deps [] = runs exactly ONCE on mount, never again ──
 
   async function handleSubscribe(planId) {
     if (status === 'loading') return
     if (status === 'unauthenticated' || !session) {
-      router.push(`/login?callbackUrl=/upgrade`)
+      router.push('/login?callbackUrl=/upgrade')
       return
     }
     if (planId === 'FREE') return
@@ -133,38 +141,38 @@ export default function UpgradePage() {
       })
       const data = await res.json()
 
-      if (data.demo) {
-        setMessage({ type: 'demo' })
-        setLoadingPlan(null)
-        return
-      }
+      if (data.demo) { setMessage({ type: 'demo' }); setLoadingPlan(null); return }
+      if (data.url)  { window.location.href = data.url; return }
 
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Something went wrong' })
-        setLoadingPlan(null)
-      }
+      setMessage({ type: 'error', text: data.error || 'Something went wrong' })
+      setLoadingPlan(null)
     } catch {
       setMessage({ type: 'error', text: 'Network error — please try again' })
       setLoadingPlan(null)
     }
   }
 
-  if (status === 'loading' || confirming) {
+  // ── Show spinner only while confirming payment ────────────────────────────
+  if (confirming) {
     return (
       <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-[#534AB7] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs text-[#5a6278]">
-            {confirming ? 'Confirming your payment...' : 'Loading your account...'}
-          </p>
+          <div className="w-10 h-10 border-2 border-[#534AB7] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm font-medium text-[#e2e8f0] mb-1">Confirming your payment...</p>
+          <p className="text-xs text-[#5a6278]">Please wait — this takes just a second</p>
         </div>
       </div>
     )
   }
 
-  // Use realPlan from DB if available, fall back to session
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#534AB7] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   const currentPlan = realPlan || session?.user?.plan || 'FREE'
 
   return (
@@ -209,32 +217,26 @@ export default function UpgradePage() {
           )}
         </div>
 
-        {/* Messages */}
+        {/* Messages — stable, no blinking */}
         {message?.type === 'success' && (
           <div className="mb-8 bg-[#1e2a1e] border border-[#1D9E75]/50 rounded-xl p-6 text-center">
             <p className="text-3xl mb-3">🎉</p>
             <p className="text-base font-medium text-[#1D9E75] mb-1">
               Payment confirmed! You are now on the {message.plan} plan.
             </p>
-            <p className="text-xs text-[#8892a4] mb-4">
+            <p className="text-xs text-[#8892a4] mb-5">
               Your access has been upgraded. All {message.plan} content is now unlocked.
             </p>
-            <div className="flex gap-3 justify-center">
-              <Link href="/dashboard"
-                className="bg-[#1D9E75] text-white text-xs font-medium px-5 py-2 rounded-lg hover:opacity-90 transition-opacity">
-                Go to dashboard →
-              </Link>
-              <button onClick={() => { update(); router.push('/dashboard') }}
-                className="border border-[#1D9E75]/40 text-[#1D9E75] text-xs font-medium px-5 py-2 rounded-lg hover:bg-[#1D9E75]/10 transition-colors">
-                Refresh & go
-              </button>
-            </div>
+            <Link href="/dashboard"
+              className="inline-block bg-[#1D9E75] text-white text-sm font-medium px-8 py-2.5 rounded-lg hover:opacity-90 transition-opacity">
+              Go to dashboard →
+            </Link>
           </div>
         )}
 
         {message?.type === 'cancelled' && (
           <div className="mb-6 bg-[#2a2f3e]/40 border border-[#2a2f3e] rounded-xl p-4 text-center">
-            <p className="text-sm text-[#8892a4]">Payment cancelled. No charge was made. You can try again anytime.</p>
+            <p className="text-sm text-[#8892a4]">Payment cancelled. No charge was made.</p>
           </div>
         )}
 
@@ -256,14 +258,16 @@ export default function UpgradePage() {
           </div>
         )}
 
-        {/* Plans */}
+        {/* Plans grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {PLANS.map((plan) => {
             const isCurrent = currentPlan === plan.id
             const isLoading = loadingPlan === plan.id
 
             return (
-              <div key={plan.id} className={`bg-[#161b27] rounded-xl p-6 relative border-2 ${plan.border}`}>
+              <div key={plan.id}
+                className={`bg-[#161b27] rounded-xl p-6 relative border-2 ${plan.border}`}>
+
                 {plan.popular && !isCurrent && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#534AB7] text-[#EEEDFE] text-[10px] font-medium px-3 py-1 rounded-full whitespace-nowrap">
                     Most popular
@@ -274,6 +278,7 @@ export default function UpgradePage() {
                     ✓ Current plan
                   </div>
                 )}
+
                 <p className="text-xs text-[#8892a4] mb-1">{plan.name}</p>
                 <div className="flex items-baseline gap-1 mb-1">
                   <span className="text-3xl font-medium">{plan.price}</span>
@@ -281,6 +286,7 @@ export default function UpgradePage() {
                 </div>
                 <p className="text-[11px] text-[#8892a4] mb-5 leading-relaxed">{plan.desc}</p>
                 <hr className="border-[#2a2f3e] mb-4" />
+
                 <ul className="space-y-2.5 mb-6">
                   {plan.features.map((f) => (
                     <li key={f.text} className="flex items-start gap-2 text-[11px]">
@@ -302,11 +308,13 @@ export default function UpgradePage() {
                     {session ? 'Go to dashboard' : 'Get started free'}
                   </Link>
                 ) : isCurrent ? (
-                  <button disabled className="w-full text-xs font-medium py-2.5 rounded-lg bg-[#1D9E75]/20 text-[#1D9E75] cursor-default">
+                  <button disabled
+                    className="w-full text-xs font-medium py-2.5 rounded-lg bg-[#1D9E75]/20 text-[#1D9E75] cursor-default">
                     ✓ Active plan
                   </button>
                 ) : (
-                  <button onClick={() => handleSubscribe(plan.id)} disabled={loadingPlan !== null}
+                  <button onClick={() => handleSubscribe(plan.id)}
+                    disabled={loadingPlan !== null}
                     className={`w-full text-xs font-medium py-2.5 rounded-lg transition-all ${plan.btnClass} disabled:opacity-60`}>
                     {isLoading ? '⏳ Redirecting to Stripe...' : `Subscribe — ${plan.price}/mo`}
                   </button>
