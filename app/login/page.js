@@ -1,10 +1,11 @@
 'use client'
-export const dynamic = 'force-dynamic'
+// app/login/page.js  ← REPLACE existing file
+// ADDED: "Forgot password?" link below the sign in form
 import { useState, useEffect } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn }              from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { COMPANY } from '../../lib/constants'
+import Link                    from 'next/link'
+import { COMPANY }             from '../../lib/constants'
 
 export default function LoginPage() {
   const router       = useRouter()
@@ -26,10 +27,10 @@ export default function LoginPage() {
     setLoading(true)
 
     if (tab === 'signup') {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
+      const res  = await fetch('/api/auth/register', {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password: pass }),
+        body:    JSON.stringify({ name, email, password: pass }),
       })
       const data = await res.json()
       if (!res.ok) { setErr(data.error || 'Sign up failed'); setLoading(false); return }
@@ -41,7 +42,9 @@ export default function LoginPage() {
 
     setLoading(false)
     if (result?.error) { setErr('Invalid email or password'); return }
-    router.push('/dashboard')
+
+    const callbackUrl = params.get('callbackUrl') || '/dashboard'
+    router.push(callbackUrl)
   }
 
   return (
@@ -97,7 +100,16 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="text-[11px] text-[#8892a4] block mb-1">Password</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] text-[#8892a4]">Password</label>
+                {/* ── ADDED: Forgot password link ── */}
+                {tab === 'login' && (
+                  <Link href="/forgot-password"
+                    className="text-[11px] text-[#534AB7] hover:underline">
+                    Forgot password?
+                  </Link>
+                )}
+              </div>
               <input type="password" value={pass} onChange={(e) => setPass(e.target.value)}
                 placeholder="••••••••" required minLength={6}
                 className="w-full bg-[#0f1117] border border-[#2a2f3e] rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#5a6278] focus:border-[#534AB7]/60" />
@@ -118,16 +130,11 @@ export default function LoginPage() {
             )}
           </form>
 
-          {tab === 'login' && (
-            <div className="mt-4 p-3 bg-[#161b27] border border-[#2a2f3e] rounded-xl text-[10px] text-[#5a6278]">
-              <p className="font-medium text-[#8892a4] mb-1">Demo accounts</p>
-              <p>Admin: contact@anilsofttech.com / Admin@AST2026</p>
-              <p>Student: demo@student.com / Student@123</p>
-            </div>
-          )}
-
           <p className="text-[10px] text-[#5a6278] text-center mt-4">
-            By continuing you agree to our Terms & Privacy Policy.
+            By continuing you agree to our{' '}
+            <Link href="/terms" className="text-[#534AB7] hover:underline">Terms</Link>
+            {' '}&{' '}
+            <Link href="/privacy" className="text-[#534AB7] hover:underline">Privacy Policy</Link>
           </p>
         </div>
       </div>

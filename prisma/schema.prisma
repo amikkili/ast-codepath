@@ -1,7 +1,5 @@
 // prisma/schema.prisma  ← REPLACE your entire schema.prisma with this
-// FIX: Added stripeCustomerId String? to User model
-// After replacing this file, run: npx prisma migrate dev --name add_stripe_customer_id
-// Then push to GitHub — Render will apply the migration automatically on redeploy
+// ADDED: PasswordResetToken model for forgot-password email flow
 
 generator client {
   provider = "prisma-client-js"
@@ -24,16 +22,28 @@ enum Role {
 }
 
 model User {
-  id               String     @id @default(cuid())
+  id               String               @id @default(cuid())
   name             String
-  email            String     @unique
+  email            String               @unique
   password         String
-  plan             Plan       @default(FREE)
-  role             Role       @default(STUDENT)
-  stripeCustomerId String?                        // ← ADDED — was missing
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  plan             Plan                 @default(FREE)
+  role             Role                 @default(STUDENT)
+  stripeCustomerId String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
   progress         Progress[]
+  resetTokens      PasswordResetToken[]
+}
+
+// ── NEW: stores one-time tokens for password reset emails ─────────────────
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 model Course {

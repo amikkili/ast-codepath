@@ -1,134 +1,114 @@
-// app/privacy/page.js
-import LegalLayout from '../../components/LegalLayout'
-import { COMPANY } from '../../lib/constants'
+// app/privacy/page.js  ← NEW FILE
+import Link   from 'next/link'
+import Navbar from '../../components/Navbar'
 
 export const metadata = {
-  title: `Privacy Policy — ${COMPANY.product} by ${COMPANY.name}`,
-  description: 'How Anil Software Technologies collects, uses, and protects your personal data on the CodePath learning platform.',
+  title: 'Privacy Policy — CodePath by Anil Software Technologies',
+  description: 'Privacy policy for CodePath online learning platform by Anil Software Technologies.',
 }
 
 export default function PrivacyPage() {
   return (
-    <LegalLayout
-      title="Privacy Policy"
-      subtitle="How we collect, use, and protect your personal information on the CodePath platform."
-      lastUpdated="May 2026"
-    >
+    <div className="min-h-screen bg-[#0f1117]">
+      <Navbar />
+      <div className="max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
 
-      <h2>1. Who we are</h2>
-      <p>
-        This Privacy Policy applies to <strong>CodePath</strong>, an online programming education platform
-        operated by <strong>Anil Software Technologies</strong>, owned and managed by{' '}
-        <strong>Anil Kumar Mikkili</strong> (CEO).
-      </p>
-      <div className="highlight">
-        <strong>Anil Software Technologies</strong><br />
-        Website: www.anilsofttech.com<br />
-        Email: contact@anilsofttech.com<br />
-        Phone: +91 9866376367<br />
-        Platform: CodePath (codepath.anilsofttech.com)
+        <div className="mb-8 md:mb-12">
+          <p className="text-[11px] text-[#534AB7] uppercase tracking-widest mb-2">Legal</p>
+          <h1 className="text-2xl md:text-3xl font-medium text-[#e2e8f0] mb-3">Privacy Policy</h1>
+          <p className="text-sm text-[#5a6278]">Last updated: May 2026 · Anil Software Technologies</p>
+        </div>
+
+        <div className="space-y-8 text-sm text-[#8892a4] leading-relaxed">
+
+          <Section title="1. Who we are">
+            <p>CodePath is an online programming education platform operated by <strong className="text-[#c8d0e0]">Anil Software Technologies</strong>, headquartered in India. Our contact email is <a href="mailto:contact@anilsofttech.com" className="text-[#534AB7] hover:underline">contact@anilsofttech.com</a> and our phone number is +91 9866376367.</p>
+          </Section>
+
+          <Section title="2. Information we collect">
+            <ul className="space-y-2 list-disc list-inside">
+              <li><strong className="text-[#c8d0e0]">Account information:</strong> Your name and email address when you sign up.</li>
+              <li><strong className="text-[#c8d0e0]">Payment information:</strong> Processed securely by Stripe or Razorpay. We never store your card number.</li>
+              <li><strong className="text-[#c8d0e0]">Learning data:</strong> Which lessons you have completed and your progress through courses.</li>
+              <li><strong className="text-[#c8d0e0]">AI interaction data:</strong> Questions you ask the AI doubt agent — used to improve answers.</li>
+              <li><strong className="text-[#c8d0e0]">Usage data:</strong> Pages visited, time spent, browser type — collected via analytics.</li>
+            </ul>
+          </Section>
+
+          <Section title="3. How we use your information">
+            <ul className="space-y-2 list-disc list-inside">
+              <li>To provide and improve our learning platform and AI tutoring service.</li>
+              <li>To send you important emails — welcome, password reset, payment receipts and course updates.</li>
+              <li>To process your subscription payments via Stripe (international) or Razorpay (India).</li>
+              <li>To track your learning progress and generate completion certificates.</li>
+              <li>To send occasional product updates and learning tips (you can unsubscribe anytime).</li>
+            </ul>
+          </Section>
+
+          <Section title="4. Data sharing">
+            <p className="mb-3">We do not sell your personal data. We share data only with the following trusted service providers:</p>
+            <ul className="space-y-2 list-disc list-inside">
+              <li><strong className="text-[#c8d0e0]">Stripe / Razorpay</strong> — payment processing</li>
+              <li><strong className="text-[#c8d0e0]">Anthropic</strong> — AI doubt agent (your questions are processed by Claude)</li>
+              <li><strong className="text-[#c8d0e0]">Cloudflare</strong> — video streaming</li>
+              <li><strong className="text-[#c8d0e0]">Resend</strong> — email delivery</li>
+              <li><strong className="text-[#c8d0e0]">Render</strong> — cloud hosting</li>
+            </ul>
+          </Section>
+
+          <Section title="5. Data retention">
+            <p>We retain your account data as long as your account is active. If you delete your account, all personal data is permanently deleted within 30 days. Payment records are retained for 7 years as required by Indian tax law.</p>
+          </Section>
+
+          <Section title="6. Your rights">
+            <ul className="space-y-2 list-disc list-inside">
+              <li>Access the personal data we hold about you.</li>
+              <li>Correct inaccurate data in your profile.</li>
+              <li>Request deletion of your account and data.</li>
+              <li>Opt out of marketing emails at any time via the unsubscribe link.</li>
+            </ul>
+            <p className="mt-3">To exercise any of these rights, email us at <a href="mailto:contact@anilsofttech.com" className="text-[#534AB7] hover:underline">contact@anilsofttech.com</a>.</p>
+          </Section>
+
+          <Section title="7. Cookies">
+            <p>We use essential cookies for login sessions and optional analytics cookies to understand how students use the platform. You can disable cookies in your browser settings, though this may affect site functionality.</p>
+          </Section>
+
+          <Section title="8. Security">
+            <p>All data is transmitted over HTTPS. Passwords are encrypted using bcrypt and are never stored in plain text. Payment data is handled exclusively by PCI-compliant payment processors (Stripe and Razorpay).</p>
+          </Section>
+
+          <Section title="9. Children's privacy">
+            <p>CodePath is intended for users aged 13 and above. We do not knowingly collect data from children under 13. If you believe a child has created an account, please contact us and we will delete it immediately.</p>
+          </Section>
+
+          <Section title="10. Contact us">
+            <div className="bg-[#161b27] border border-[#2a2f3e] rounded-xl p-4 mt-2">
+              <p className="text-[#c8d0e0] font-medium mb-2">Anil Software Technologies</p>
+              <p>CEO: Anil Kumar Mikkili</p>
+              <p>Email: <a href="mailto:contact@anilsofttech.com" className="text-[#534AB7] hover:underline">contact@anilsofttech.com</a></p>
+              <p>Phone: +91 9866376367</p>
+              <p>Website: <a href="https://www.anilsofttech.com" className="text-[#534AB7] hover:underline">www.anilsofttech.com</a></p>
+            </div>
+          </Section>
+
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-[#2a2f3e] flex items-center gap-4 text-xs text-[#5a6278]">
+          <Link href="/terms" className="hover:text-[#534AB7] transition-colors">Terms of Service</Link>
+          <span>·</span>
+          <Link href="/" className="hover:text-[#534AB7] transition-colors">← Back to home</Link>
+        </div>
       </div>
+    </div>
+  )
+}
 
-      <h2>2. What information we collect</h2>
-      <p>We collect the following information when you use CodePath:</p>
-      <ul>
-        <li><strong>Account information:</strong> Your full name, email address, and password (stored as an encrypted hash — we cannot read your actual password).</li>
-        <li><strong>Payment information:</strong> When you subscribe to a paid plan, your payment is processed by Stripe. We do not store your card number, CVV, or bank details on our servers.</li>
-        <li><strong>Learning progress:</strong> Which lessons you have watched, which courses you are enrolled in, and how much of each video you have completed.</li>
-        <li><strong>AI interaction data:</strong> Questions you ask the AI doubt-clearing agent during lessons, to provide relevant answers in context.</li>
-        <li><strong>Usage data:</strong> Pages you visit, time spent on the platform, browser type, and device type — collected via analytics tools.</li>
-        <li><strong>Communications:</strong> If you contact us by email or through the platform, we keep a record of that communication.</li>
-      </ul>
-
-      <h2>3. How we use your information</h2>
-      <p>We use your information for the following purposes:</p>
-      <ul>
-        <li>To create and manage your student account.</li>
-        <li>To provide access to video lessons, AI doubt-clearing, and other platform features based on your subscription plan.</li>
-        <li>To process subscription payments and send payment receipts.</li>
-        <li>To send important account emails such as welcome messages, password resets, and course completion certificates.</li>
-        <li>To track and display your learning progress on your dashboard.</li>
-        <li>To improve the platform based on how students use it.</li>
-        <li>To respond to your support requests and questions.</li>
-      </ul>
-      <p>We do <strong>not</strong> sell your personal data to any third party. We do not use your data for advertising purposes.</p>
-
-      <h2>4. How we store and protect your data</h2>
-      <p>
-        Your data is stored in a secure <strong>PostgreSQL database</strong> hosted on Render.com, a cloud
-        infrastructure provider with industry-standard security practices. All data is transmitted over
-        HTTPS (encrypted connection).
-      </p>
-      <ul>
-        <li><strong>Passwords:</strong> Stored using bcrypt hashing (one-way encryption). Even our team cannot read your password.</li>
-        <li><strong>Payment data:</strong> Handled entirely by Stripe, which is PCI-DSS Level 1 certified — the highest level of payment security.</li>
-        <li><strong>Videos:</strong> Hosted on Cloudflare Stream. Video links are private and require authentication to access.</li>
-        <li><strong>Sessions:</strong> Login sessions are encrypted using secure JWT tokens managed by NextAuth.</li>
-      </ul>
-
-      <h2>5. Third-party services we use</h2>
-      <p>We use the following trusted third-party services to operate CodePath. Each has their own privacy policy:</p>
-      <ul>
-        <li><strong>Stripe</strong> (stripe.com) — payment processing and subscription billing.</li>
-        <li><strong>Cloudflare Stream</strong> (cloudflare.com) — secure video hosting and delivery.</li>
-        <li><strong>Render</strong> (render.com) — cloud hosting for our application and database.</li>
-        <li><strong>Anthropic</strong> (anthropic.com) — AI model powering the doubt-clearing agent. Your questions are sent to Anthropic's API to generate answers.</li>
-        <li><strong>Resend</strong> (resend.com) — transactional email delivery (welcome emails, receipts).</li>
-      </ul>
-
-      <h2>6. Cookies</h2>
-      <p>
-        CodePath uses essential cookies to keep you logged in between sessions. We use a session cookie
-        managed by NextAuth. We do not use advertising or tracking cookies. By using our platform, you
-        consent to these essential cookies.
-      </p>
-
-      <h2>7. Your rights</h2>
-      <p>As a user of CodePath, you have the following rights:</p>
-      <ul>
-        <li><strong>Access:</strong> You can request a copy of all personal data we hold about you.</li>
-        <li><strong>Correction:</strong> You can ask us to correct inaccurate information.</li>
-        <li><strong>Deletion:</strong> You can request that we delete your account and all associated data.</li>
-        <li><strong>Data portability:</strong> You can request your progress data in a readable format.</li>
-        <li><strong>Opt out of emails:</strong> You can unsubscribe from non-essential emails at any time using the unsubscribe link in any email.</li>
-      </ul>
-      <p>
-        To exercise any of these rights, email us at{' '}
-        <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a> and we will respond within 7 working days.
-      </p>
-
-      <h2>8. Data retention</h2>
-      <p>
-        We retain your account data for as long as your account is active. If you delete your account,
-        we remove your personal data within 30 days. Payment records may be retained for up to 7 years
-        as required by Indian tax law (GST compliance).
-      </p>
-
-      <h2>9. Children's privacy</h2>
-      <p>
-        CodePath is intended for users aged 13 and above. We do not knowingly collect personal data from
-        children under 13. If you believe a child under 13 has created an account, please contact us and
-        we will delete the account immediately.
-      </p>
-
-      <h2>10. Changes to this policy</h2>
-      <p>
-        We may update this Privacy Policy from time to time. When we do, we will update the "Last updated"
-        date at the top of this page and notify registered students by email for significant changes.
-        Continued use of the platform after changes constitutes acceptance of the updated policy.
-      </p>
-
-      <h2>11. Contact us</h2>
-      <p>
-        For any privacy-related questions, requests, or concerns, please contact:
-      </p>
-      <div className="highlight">
-        <strong>Anil Kumar Mikkili</strong> — CEO, Anil Software Technologies<br />
-        Email: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a><br />
-        Phone: {COMPANY.phone}<br />
-        Website: {COMPANY.website}
-      </div>
-
-    </LegalLayout>
+function Section({ title, children }) {
+  return (
+    <div>
+      <h2 className="text-base font-medium text-[#e2e8f0] mb-3">{title}</h2>
+      {children}
+    </div>
   )
 }
