@@ -1,5 +1,5 @@
-// prisma/schema.prisma  ← REPLACE your entire schema.prisma with this
-// ADDED: PasswordResetToken model for forgot-password email flow
+// prisma/schema.prisma  ← REPLACE entire file
+// ADDED: Certificate model to store issued certificates
 
 generator client {
   provider = "prisma-client-js"
@@ -33,9 +33,21 @@ model User {
   updatedAt        DateTime             @updatedAt
   progress         Progress[]
   resetTokens      PasswordResetToken[]
+  certificates     Certificate[]        // ← NEW
 }
 
-// ── NEW: stores one-time tokens for password reset emails ─────────────────
+// ── NEW: stores issued certificates ──────────────────────────────────────────
+model Certificate {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId    String
+  courseName  String
+  issuedAt    DateTime @default(now())
+
+  @@unique([userId, courseId])   // one certificate per student per course
+}
+
 model PasswordResetToken {
   id        String   @id @default(cuid())
   userId    String
