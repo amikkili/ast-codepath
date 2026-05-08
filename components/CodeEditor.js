@@ -67,7 +67,7 @@ const ALL_LANGUAGES = [
 ]
 
 // ── Starter code per language ──────────────────────────────────────────────────
-const STARTER: Record<string, string> = {
+const STARTER = {
   python:     `# Python\nprint("Hello from CodePath!")\n\nfor i in range(1, 4):\n    print(f"Line {i}")`,
   javascript: `// JavaScript\nconsole.log("Hello from CodePath!");\n\nfor (let i = 1; i <= 3; i++) {\n  console.log("Line " + i);\n}`,
   typescript: `// TypeScript\nconst greet = (name: string): string => {\n  return \`Hello, \${name}!\`;\n};\nconsole.log(greet("CodePath"));`,
