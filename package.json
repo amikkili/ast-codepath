@@ -12,6 +12,7 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@prisma/client": "^5.14.0",
     "bcryptjs": "^2.4.3",
     "lucide-react": "^0.383.0",
